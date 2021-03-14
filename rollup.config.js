@@ -1,83 +1,91 @@
-import svelte from 'rollup-plugin-svelte';
-import commonjs from '@rollup/plugin-commonjs';
-import resolve from '@rollup/plugin-node-resolve';
-import livereload from 'rollup-plugin-livereload';
-import { terser } from 'rollup-plugin-terser';
-import sveltePreprocess from 'svelte-preprocess';
-import typescript from '@rollup/plugin-typescript';
-import css from 'rollup-plugin-css-only';
+import resolve from '@rollup/plugin-node-resolve'
+import replace from '@rollup/plugin-replace'
+import commonjs from '@rollup/plugin-commonjs'
+import svelte from 'rollup-plugin-svelte'
+import esbuild from 'rollup-plugin-esbuild'
+import config from 'sapper/config/rollup'
+import sveltePreprocess from 'svelte-preprocess'
+import pkg from './package.json'
 
-const production = !process.env.ROLLUP_WATCH;
+const defaults = { script: 'typescript' }
+const preprocess = [sveltePreprocess({ defaults })]
+const mode = process.env.NODE_ENV
+const dev = mode === 'development'
+const sourcemap = dev ? 'inline' : false
+const sapperVersion = pkg.devDependencies.sapper.match(/[0-9]{1,5}/g).map(el => Number(el))
 
-function serve() {
-	let server;
+const optimizer = server => esbuild({
+	include: /\.[jt]sx?$/,
+	minify: server ? (sapperVersion[1] >= 28 && sapperVersion[2] > 0) ? false : true : true,
+	target: 'es2017'
+})
 
-	function toExit() {
-		if (server) server.kill(0);
-	}
+const warningIsIgnored = (warning) => warning.message.includes(
+	'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification',
+) || warning.message.includes('Circular dependency: node_modules')
 
-	return {
-		writeBundle() {
-			if (server) return;
-			server = require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
-				stdio: ['ignore', 'inherit', 'inherit'],
-				shell: true
-			});
-
-			process.on('SIGTERM', toExit);
-			process.on('exit', toExit);
-		}
-	};
-}
+// Workaround for https://github.lcom/sveltejs/sapper/issues/1266
+const onwarn = (warning, _onwarn) => (warning.code === 'CIRCULAR_DEPENDENCY' && /[/\\]@sapper[/\\]/.test(warning.message)) || warningIsIgnored(warning) || console.warn(warning.toString())
 
 export default {
-	input: 'src/main.ts',
-	output: {
-		sourcemap: true,
-		format: 'iife',
-		name: 'app',
-		file: 'public/build/bundle.js'
+	client: {
+		input: config.client.input().replace(/\.js$/, '.ts'),
+		output: config.client.output(),
+		plugins: [
+			replace({
+				"process.browser": true,
+				"process.env.NODE_ENV": JSON.stringify(mode),
+			}),
+			svelte({
+				preprocess,
+				dev,
+				hydratable: true,
+				emitCss: true,
+			}),
+			resolve(),
+			commonjs(),
+			optimizer()
+		],
+
+		preserveEntrySignatures: false,
+		onwarn,
 	},
-	plugins: [
-		svelte({
-			preprocess: sveltePreprocess({ sourceMap: !production }),
-			compilerOptions: {
-				// enable run-time checks when not in production
-				dev: !production
-			}
-		}),
-		// we'll extract any component CSS out into
-		// a separate file - better for performance
-		css({ output: 'bundle.css' }),
 
-		// If you have external dependencies installed from
-		// npm, you'll most likely need these plugins. In
-		// some cases you'll need additional configuration -
-		// consult the documentation for details:
-		// https://github.com/rollup/plugins/tree/master/packages/commonjs
-		resolve({
-			browser: true,
-			dedupe: ['svelte']
-		}),
-		commonjs(),
-		typescript({
-			sourceMap: !production,
-			inlineSources: !production
-		}),
+	server: {
+		input: config.server.input().server.replace(/\.js$/, '.ts'),
+		output: config.server.output(),
+		plugins: [
+			replace({
+				"process.browser": false,
+				"process.env.NODE_ENV": JSON.stringify(mode),
+			}),
+			svelte({
+				preprocess,
+				generate: "ssr",
+				dev,
+			}),
+			resolve(),
+			commonjs(),
+			optimizer(true)
+		],
+		external: Object.keys(pkg.dependencies).concat(
+			require("module").builtinModules || Object.keys(process.binding("natives")), // eslint-disable-line global-require
+		),
+		onwarn,
+	},
 
-		// In dev mode, call `npm run start` once
-		// the bundle has been generated
-		!production && serve(),
-
-		// Watch the `public` directory and refresh the
-		// browser on changes when not in production
-		!production && livereload('public'),
-
-		// If we're building for production (npm run build
-		// instead of npm run dev), minify
-		production && terser()
-	],
-	watch: {
-		clearScreen: false
-	}
+	serviceworker: {
+		input: config.serviceworker.input().replace(/\.js$/, '.ts'),
+		output: config.serviceworker.output(),
+		plugins: [
+			resolve(),
+			replace({
+				"process.browser": true,
+				"process.env.NODE_ENV": JSON.stringify(mode),
+			}),
+			commonjs(),
+			optimizer()
+		],
+		onwarn,
+	},
 };
