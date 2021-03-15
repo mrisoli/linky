@@ -8,7 +8,7 @@ import sveltePreprocess from 'svelte-preprocess'
 import pkg from './package.json'
 
 const defaults = { script: 'typescript' }
-const preprocess = [sveltePreprocess({ defaults })]
+const preprocess = [sveltePreprocess({ defaults, postcss: true })]
 const mode = process.env.NODE_ENV
 const dev = mode === 'development'
 const sourcemap = dev ? 'inline' : false
