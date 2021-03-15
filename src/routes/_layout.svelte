@@ -11,6 +11,12 @@
 	$: path = $page.path.slice(1);
 </script>
 
+<style global lang="postcss">
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+</style>
+
 <svelte:head>
 	<title>
 		{path ? path.charAt(0).toUpperCase() + path.slice(1) : "Index"}
