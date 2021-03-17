@@ -1,7 +1,4 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
-name: Node.js CI
+name: Test CI
 
 on:
   push:
@@ -26,5 +23,5 @@ jobs:
             **/node_modules
             ~/.cache
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - run: yarn install
+      - run: yarn
       - run: yarn test
