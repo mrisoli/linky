@@ -5,6 +5,7 @@
         "node_modules/**/*",
         "__sapper__/**/*",
         "public/**/*",
+        "**/__tests__/**/*",
         "**/*.test.ts"
     ],
     "compilerOptions": {
