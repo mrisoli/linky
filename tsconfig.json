@@ -5,7 +5,7 @@
         "node_modules/**/*",
         "__sapper__/**/*",
         "public/**/*",
-        "**/*.test.ts",
+        "**/*.test.ts"
     ],
     "compilerOptions": {
         "esModuleInterop": true,
