@@ -16,6 +16,7 @@ const sapperVersion = pkg.devDependencies.sapper.match(/[0-9]{1,5}/g).map(el => 
 
 const optimizer = server => esbuild({
 	minify: server ? (sapperVersion[1] >= 28 && sapperVersion[2] > 0) ? false : true : true,
+	target: 'es2020',
 })
 
 const warningIsIgnored = (warning) => warning.message.includes(
@@ -31,6 +32,7 @@ export default {
 		output: config.client.output(),
 		plugins: [
 			replace({
+				preventAssignment: true,
 				"process.browser": true,
 				"process.env.NODE_ENV": JSON.stringify(mode),
 			}),
@@ -54,6 +56,7 @@ export default {
 		output: config.server.output(),
 		plugins: [
 			replace({
+				preventAssignment: true,
 				"process.browser": false,
 				"process.env.NODE_ENV": JSON.stringify(mode),
 			}),
@@ -78,6 +81,7 @@ export default {
 		plugins: [
 			resolve(),
 			replace({
+				preventAssignment: true,
 				"process.browser": true,
 				"process.env.NODE_ENV": JSON.stringify(mode),
 			}),
