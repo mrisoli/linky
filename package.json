@@ -1,5 +1,5 @@
 {
-  "name": "my-vue-app",
+  "name": "linky",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,8 +13,12 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",
+    "@testing-library/jest-dom": "^5.16.2",
+    "@testing-library/svelte": "^3.0.3",
     "@tsconfig/svelte": "^2.0.1",
-    "svelte": "^3.44.0",
+    "@vitest/ui": "^0.6.0",
+    "jsdom": "^19.0.0",
+    "svelte": "^3.46.4",
     "svelte-check": "^2.2.7",
     "svelte-preprocess": "^4.9.8",
     "tslib": "^2.3.1",
