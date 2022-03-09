@@ -7,7 +7,65 @@ on:
     branches: [main]
 
 jobs:
-  unit:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [17.x]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm install
+
+      - name: Build project
+        run: npm run build
+
+  prettier:
+    name: Prettier Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Run Prettier
+        id: prettier-run
+        uses: rutajdash/prettier-cli-action@add69d989fe32136a4ee5f6f9026ae830bbc21b8
+        with:
+          config_path: ./.prettierrc.cjs
+
+      # This step only runs if prettier finds errors causing the previous step to fail
+      # This steps lists the files where errors were found
+      - name: Prettier Output
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          echo "The following files are not formatted:"
+          echo "${{steps.prettier-run.outputs.prettier_output}}"
+  eslint:
+    name: ESLint Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 17.x
+          cache: 'npm'
+      - run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+
+  test:
     name: Unit Tests
     runs-on: ubuntu-latest
     strategy:
@@ -15,14 +73,10 @@ jobs:
         node-version: [17.x]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Setup Node
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/cache@v2
-        with:
-          path: |
-            **/node_modules
-            ~/.cache
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
-      - run: npm i
+          cache: 'npm'
+      - run: npm install
       - run: npm run test
