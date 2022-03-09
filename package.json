@@ -8,21 +8,37 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "coverage": "vitest run --coverage",
     "dev": "vite",
+    "lint": "eslint './src/**/*.{js,ts,svelte}'",
+    "lint:fix": "eslint --fix './src/**/*.{js,ts,svelte}'",
+    "prettier": "prettier --write .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "prepare": "husky install"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",
+    "@sveltejs/vite-plugin-svelte": "^1.0.0-next.39",
     "@testing-library/svelte": "^3.0.3",
-    "@tsconfig/svelte": "^2.0.1",
+    "@tsconfig/svelte": "^3.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.14.0",
+    "@typescript-eslint/parser": "^5.14.0",
     "@vitest/ui": "^0.6.0",
+    "eslint": "^8.10.0",
+    "eslint-plugin-svelte3": "^3.4.1",
+    "husky": "^7.0.4",
     "jsdom": "^19.0.0",
+    "lint-staged": "^12.3.5",
+    "prettier": "^2.5.1",
+    "prettier-plugin-svelte": "^2.6.0",
     "svelte": "^3.46.4",
-    "svelte-check": "^2.2.7",
-    "svelte-preprocess": "^4.9.8",
+    "svelte-check": "^2.4.5",
+    "svelte-preprocess": "^4.10.4",
     "tslib": "^2.3.1",
-    "typescript": "^4.5.4",
-    "vite": "^2.8.0",
+    "typescript": "^4.6.2",
+    "vite": "^2.8.6",
     "vitest": "^0.6.0"
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix",
+    "*.{js,css,md}": "prettier --write"
   }
 }
